@@ -45,6 +45,76 @@ st.markdown("""
         margin: 10px 0;
         box-shadow: 0 2px 5px rgba(0,0,0,0.1);
     }
+            
+     /* Dark mode toggle fix */
+[data-theme="dark"] .chat-container {
+    background-color: #111 !important;
+}
+[data-theme="dark"] .user-msg {
+    background:#005f73 !important;
+    border-color:#0a9396 !important;
+    color:white !important;
+}
+[data-theme="dark"] .bot-msg {
+    background:#1b1b1d !important;
+    border-color:#3a3a3c !important;
+    color:white !important;
+}
+
+/* ChatGPT bubble layout */
+.chat-container {
+    max-width: 780px;
+    margin: auto;
+    padding-bottom: 120px;
+}
+.user-msg, .bot-msg {
+    border-radius: 12px;
+    padding: 14px 18px;
+    margin: 12px 0;
+    font-size: 15.5px;
+    line-height: 1.6;
+    width: fit-content;
+    max-width: 92%;
+}
+.user-msg {
+    background-color: #d6ebff;
+    margin-left: auto;
+    border: 1px solid #b1d7ff;
+}
+.bot-msg {
+    background: #ffffff;
+    border: 1px solid #e6e6e6;
+    margin-right: auto;
+}
+
+/* Input bar */
+.chat-input-box {
+    position: fixed;
+    bottom: 0; left: 0; right: 0;
+    background: white;
+    padding: 12px 20px;
+    border-top: 1px solid #e5e7eb;
+}
+[data-theme="dark"] .chat-input-box {
+    background: #0f0f0f !important;
+    border-top: 1px solid #333 !important;
+}
+
+/* Typing animation */
+.typing-dot {
+    height: 10px;
+    width: 10px;
+    margin: 0 3px;
+    background-color: #999;
+    border-radius: 50%;
+    display: inline-block;
+    animation: blink 1.4s infinite both;
+}
+@keyframes blink {
+    0% { opacity: .2; }
+    20% { opacity: 1; }
+    100% { opacity: .2; }
+}       
     </style>
 """, unsafe_allow_html=True)
 
@@ -220,6 +290,24 @@ with st.sidebar:
     st.divider()
     st.caption("Supervised by: Ms. Razia Nisar Noorani")
 
+
+    # --- Voice Input JS ---
+st.markdown("""
+<script>
+function recordVoice() {
+  const recognition = new(window.SpeechRecognition || window.webkitSpeechRecognition)();
+  recognition.lang = "en-US";
+  recognition.start();
+  recognition.onresult = function(event) {
+      const text = event.results[0][0].transcript;
+      window.parent.postMessage({type:"voice_input", text:text}, "*");
+  };
+}
+</script>
+""", unsafe_allow_html=True)
+voice_text = st.experimental_get_query_params().get("voice_input", [""])[0]
+
+
 # ------------------------
 # Main Tabs
 # ------------------------
@@ -232,68 +320,6 @@ tab_chat, tab_pdf, tab_translate, tab_cases = st.tabs(
 # ------------------------
 with tab_chat:
     st.markdown("### 💬 Ask Your Legal Questions")
-    st.caption("Get instant answers about Pakistani Family Law, Tax Law, and Cyber Crime Law")
-
-    # Initialize chat history
-    if "chat_history" not in st.session_state:
-        st.session_state["chat_history"] = [
-            {
-                "role": "assistant",
-                "content": "السلام علیکم! I'm Qanoon Buddy, your AI legal assistant. Ask me anything about Family Law, Tax Law, or Cyber Crime Law in Pakistan. How can I help you today?"
-            }
-        ]
-
-    system_prompt = (
-        "You are Qanoon Buddy, an AI legal assistant for Pakistani users specializing in "
-        "Family Law, Tax Law, and Cyber Crime (PECA Act). Provide clear, simple explanations "
-        "in a friendly tone. Use both English and Urdu phrases where appropriate. "
-        "ALWAYS include a disclaimer that you are not a lawyer and users should consult "
-        "qualified legal professionals for specific advice. Keep responses concise (3-5 paragraphs)."
-    )
-
-    # Display chat history
-    for msg in st.session_state["chat_history"]:
-        with st.chat_message(msg["role"]):
-            st.markdown(msg["content"])
-
-    # Chat input
-    user_input = st.chat_input("Type your legal question here...")
-    if user_input:
-        # Add user message
-        st.session_state["chat_history"].append({"role": "user", "content": user_input})
-        with st.chat_message("user"):
-            st.markdown(user_input)
-
-        # Get AI response
-        with st.chat_message("assistant"):
-            with st.spinner("🤔 Researching..."):
-                resp = ask_gemini(prompt=user_input, system_prompt=system_prompt)
-                if resp is None:
-                    resp = "⚠️ Sorry, I couldn't generate a response. Please check your API key."
-                st.markdown(resp)
-        
-        st.session_state["chat_history"].append({"role": "assistant", "content": resp})
-        st.rerun()
-
-    # Example questions
-    st.divider()
-    st.markdown("#### 💡 Example Questions:")
-    col1, col2, col3 = st.columns(3)
-    
-    with col1:
-        if st.button("What is khula?"):
-            st.session_state["chat_history"].append({"role": "user", "content": "What is khula in Pakistani law?"})
-            st.rerun()
-    
-    with col2:
-        if st.button("Tax on salary?"):
-            st.session_state["chat_history"].append({"role": "user", "content": "What is the tax on salary in Pakistan?"})
-            st.rerun()
-    
-    with col3:
-        if st.button("Cyber harassment?"):
-            st.session_state["chat_history"].append({"role": "user", "content": "What is cyber harassment under PECA?"})
-            st.rerun()
 
 # ------------------------
 # TAB 2: PDF Summarizer
