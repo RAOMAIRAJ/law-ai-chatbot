@@ -2,3 +2,4 @@ streamlit
 google-generativeai
 protobuf
 requests
+PyPDF2
