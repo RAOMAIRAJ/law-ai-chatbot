@@ -427,3 +427,4 @@ with tab_cases:
                                 explanation = ask_gemini(prompt)
                                 if explanation:
                                     st.markdown("**🎓 Simple Explanation:**")
+                                    st.success(explanation)
